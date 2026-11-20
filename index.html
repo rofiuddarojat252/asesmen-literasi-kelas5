@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f8f5; color: #333; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    h2, h3 { color: #2e7d32; text-align: center; }
+    
+    /* Konfigurasi Halaman & Soal */
+    .page, .question-step { display: none; }
+    .page.active, .question-step.active-step { display: block; }
+    
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+    
+    .bacaan { background-color: #e8f5e9; padding: 15px; border-left: 5px solid #2e7d32; margin-bottom: 20px; border-radius: 5px; font-style: italic; font-size: 15px;}
+    .soal { margin-bottom: 15px; font-size: 16px; }
+    .opsi { display: block; margin-bottom: 12px; cursor: pointer; font-size: 15px; background: #fafafa; padding: 10px; border: 1px solid #e0e0e0; border-radius: 5px;}
+    .opsi:hover { background: #e8f5e9; border-color: #2e7d32; }
+    
+    /* Tombol Navigasi */
+    .nav-buttons { display: flex; justify-content: space-between; gap: 10px; margin-top: 25px; }
+    .btn { background-color: #2e7d32; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; flex: 1; font-weight: bold;}
+    .btn:hover { background-color: #1b5e20; }
+    .btn-secondary { background-color: #757575; }
+    .btn-secondary:hover { background-color: #424242; }
+    
+    .progress-text { text-align: center; color: #666; font-weight: bold; margin-bottom: 15px; font-size: 14px;}
+    
+    .result-box { text-align: center; padding: 20px; border: 2px solid #2e7d32; border-radius: 10px; margin-top: 20px; }
+    .skor-besar { font-size: 40px; font-weight: bold; color: #d32f2f; }
+    .kategori-label { font-size: 24px; font-weight: bold; color: #1976d2; }
+    #loading { display: none; text-align: center; font-weight: bold; color: #2e7d32; margin-top: 15px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HALAMAN 1: IDENTITAS -->
+  <div id="page1" class="page active">
+    <h2>Asesmen Literasi<br>SD Islam Al Husna</h2>
+    <p style="text-align: center;">Silakan isi biodata Anda sebelum memulai ujian.</p>
+    
+    <form id="formIdentitas">
+      <div class="form-group">
+        <label for="nama">Nama Lengkap:</label>
+        <input type="text" id="nama" name="nama" required placeholder="Ketik nama lengkapmu...">
+      </div>
+      <div class="form-group">
+        <label for="kelas">Kelas:</label>
+        <select id="kelas" name="kelas" required>
+          <option value="" disabled selected>-- Pilih Kelas --</option>
+          <option value="5A">5A</option>
+          <option value="5B">5B</option>
+          <option value="5C">5C</option>
+          <option value="5D">5D</option>
+        </select>
+      </div>
+      <button type="button" class="btn" style="width: 100%; margin-top:10px;" onclick="startQuiz()">Mulai Ujian</button>
+    </form>
+  </div>
+
+  <!-- HALAMAN 2: SOAL LITERASI SATU PER SATU -->
+  <div id="page2" class="page">
+    <div class="progress-text">Soal <span id="soal-ke">1</span> dari 10</div>
+    
+    <!-- Teks Bacaan 1 (Untuk Soal 1-5) -->
+    <div id="teks1" class="bacaan">
+      <strong>Teks 1: Perpustakaan Keliling di SD Islam Al Husna</strong><br>
+      Hari ini sangat istimewa bagi siswa kelas 5 SD Islam Al Husna. Mobil perpustakaan keliling dari pemerintah kota datang berkunjung. Fatimah membaca buku tentang "Keajaiban Alam Semesta menurut Al-Qur'an", sedangkan Ali asyik membaca komik pahlawan Islam, Tariq bin Ziyad. Bapak Guru mengingatkan agar setiap siswa merangkum bacaan mereka karena perintah pertama dalam agama Islam yang diturunkan kepada Nabi Muhammad SAW adalah "Iqra" yang berarti "Bacalah".
+    </div>
+
+    <!-- Teks Bacaan 2 (Untuk Soal 6-10) -->
+    <div id="teks2" class="bacaan" style="display: none;">
+      <strong>Teks 2: Program Sedekah Jumat</strong><br>
+      Setiap hari Jumat pagi, SD Islam Al Husna memiliki program rutin bernama "Sedekah Jumat". Siswa diajarkan untuk menyisihkan sebagian uang saku mereka secara sukarela. Dana yang terkumpul disalurkan kepada panti asuhan dan warga yang membutuhkan (dhuafa). Bu Guru Aisyah berpesan, "Bersedekah tidak membuat miskin, melainkan membersihkan harta dan menumbuhkan empati. Senyum yang ikhlas pun bernilai sedekah jika kita belum memiliki harta."
+    </div>
+
+    <form id="formSoal" onsubmit="submitData(event)">
+      <input type="hidden" id="hiddenNama" name="nama">
+      <input type="hidden" id="hiddenKelas" name="kelas">
+
+      <!-- BLOK SOAL -->
+      <div class="question-step" data-step="1">
+        <div class="soal">1. Apa kegiatan istimewa yang sedang berlangsung di SD Islam Al Husna?</div>
+        <label class="opsi"><input type="radio" name="q1" value="A"> A. Lomba Hafalan Al-Qur'an</label>
+        <label class="opsi"><input type="radio" name="q1" value="B"> B. Kunjungan Perpustakaan Keliling</label>
+        <label class="opsi"><input type="radio" name="q1" value="C"> C. Kegiatan Pesantren Kilat</label>
+        <label class="opsi"><input type="radio" name="q1" value="D"> D. Olahraga Bersama</label>
+      </div>
+
+      <div class="question-step" data-step="2">
+        <div class="soal">2. Buku apa yang dibaca oleh Ali?</div>
+        <label class="opsi"><input type="radio" name="q2" value="A"> A. Buku Sains</label>
+        <label class="opsi"><input type="radio" name="q2" value="B"> B. Buku Kisah Nabi</label>
+        <label class="opsi"><input type="radio" name="q2" value="C"> C. Komik Pahlawan Islam</label>
+        <label class="opsi"><input type="radio" name="q2" value="D"> D. Keajaiban Alam Semesta</label>
+      </div>
+
+      <div class="question-step" data-step="3">
+        <div class="soal">3. Mengapa Bapak Guru meminta para siswa untuk membuat rangkuman bacaan?</div>
+        <label class="opsi"><input type="radio" name="q3" value="A"> A. Agar siswa cepat pulang ke rumah</label>
+        <label class="opsi"><input type="radio" name="q3" value="B"> B. Untuk melatih pemahaman terhadap isi buku</label>
+        <label class="opsi"><input type="radio" name="q3" value="C"> C. Agar buku perpustakaan tidak hilang</label>
+        <label class="opsi"><input type="radio" name="q3" value="D"> D. Untuk dinilai oleh petugas perpustakaan</label>
+      </div>
+
+      <div class="question-step" data-step="4">
+        <div class="soal">4. Kesimpulan alasan pentingnya membaca bagi seorang muslim adalah...</div>
+        <label class="opsi"><input type="radio" name="q4" value="A"> A. Karena perintah pertama dalam Islam adalah "Iqra" (bacalah)</label>
+        <label class="opsi"><input type="radio" name="q4" value="B"> B. Agar mendapatkan nilai raport yang bagus</label>
+        <label class="opsi"><input type="radio" name="q4" value="C"> C. Karena perpustakaan keliling memberikan buku gratis</label>
+        <label class="opsi"><input type="radio" name="q4" value="D"> D. Agar dipuji oleh Bapak atau Ibu Guru</label>
+      </div>
+
+      <div class="question-step" data-step="5">
+        <div class="soal">5. Apa manfaat reflektif paling besar dari membaca buku alam semesta menurut Al-Qur'an?</div>
+        <label class="opsi"><input type="radio" name="q5" value="A"> A. Hanya untuk mengisi waktu luang saat istirahat</label>
+        <label class="opsi"><input type="radio" name="q5" value="B"> B. Menambah ilmu sains sekaligus mempertebal keimanan kepada Allah</label>
+        <label class="opsi"><input type="radio" name="q5" value="C"> C. Agar mendapat hadiah dari petugas perpustakaan</label>
+        <label class="opsi"><input type="radio" name="q5" value="D"> D. Untuk dihafalkan saat ujian akhir semester</label>
+      </div>
+
+      <div class="question-step" data-step="6">
+        <div class="soal">6. Apa program rutin yang diadakan setiap hari Jumat di SD Islam Al Husna?</div>
+        <label class="opsi"><input type="radio" name="q6" value="A"> A. Senam Kesegaran Jasmani</label>
+        <label class="opsi"><input type="radio" name="q6" value="B"> B. Program Sedekah Jumat</label>
+        <label class="opsi"><input type="radio" name="q6" value="C"> C. Lomba Mewarnai Kaligrafi</label>
+        <label class="opsi"><input type="radio" name="q6" value="D"> D. Kerja Bakti Sekolah</label>
+      </div>
+
+      <div class="question-step" data-step="7">
+        <div class="soal">7. Kepada siapa hasil sedekah tersebut disalurkan?</div>
+        <label class="opsi"><input type="radio" name="q7" value="A"> A. Kepada para guru dan staf sekolah</label>
+        <label class="opsi"><input type="radio" name="q7" value="B"> B. Kepada panti asuhan dan kaum dhuafa</label>
+        <label class="opsi"><input type="radio" name="q7" value="C"> C. Disimpan untuk kas kelas</label>
+        <label class="opsi"><input type="radio" name="q7" value="D"> D. Digunakan untuk perbaikan taman sekolah</label>
+      </div>
+
+      <div class="question-step" data-step="8">
+        <div class="soal">8. Mengapa berinfak atau bersedekah sangat dianjurkan berdasarkan teks tersebut?</div>
+        <label class="opsi"><input type="radio" name="q8" value="A"> A. Agar menjadi murid yang paling terkenal</label>
+        <label class="opsi"><input type="radio" name="q8" value="B"> B. Karena dapat membersihkan harta dan menumbuhkan empati</label>
+        <label class="opsi"><input type="radio" name="q8" value="C"> C. Supaya mendapatkan nilai agama yang sempurna</label>
+        <label class="opsi"><input type="radio" name="q8" value="D"> D. Karena diwajibkan sebagai syarat kelulusan</label>
+      </div>
+
+      <div class="question-step" data-step="9">
+        <div class="soal">9. Sikap apa yang benar jika seseorang ingin bersedekah?</div>
+        <label class="opsi"><input type="radio" name="q9" value="A"> A. Menceritakannya kepada seluruh teman di kelas</label>
+        <label class="opsi"><input type="radio" name="q9" value="B"> B. Melakukannya secara sukarela dan ikhlas</label>
+        <label class="opsi"><input type="radio" name="q9" value="C"> C. Meminta kembali uangnya jika sedang butuh</label>
+        <label class="opsi"><input type="radio" name="q9" value="D"> D. Merasa dirinya lebih mulia dari orang lain</label>
+      </div>
+
+      <div class="question-step" data-step="10">
+        <div class="soal">10. Jika kamu tidak memiliki sisa uang saku sama sekali, refleksi apa yang bisa kamu lakukan terkait sedekah?</div>
+        <label class="opsi"><input type="radio" name="q10" value="A"> A. Merasa sedih dan menjauhi teman-teman</label>
+        <label class="opsi"><input type="radio" name="q10" value="B"> B. Meminjam uang kepada teman untuk ikut menyumbang</label>
+        <label class="opsi"><input type="radio" name="q10" value="C"> C. Bersedekah melalui kebaikan lain, misalnya tersenyum</label>
+        <label class="opsi"><input type="radio" name="q10" value="D"> D. Memaksa orang tua agar diberi uang tambahan</label>
+      </div>
+
+      <!-- NAVIGASI BAWAH -->
+      <div class="nav-buttons">
+        <button type="button" class="btn btn-secondary" id="btnPrev" onclick="prevStep()">Sebelumnya</button>
+        <button type="button" class="btn" id="btnNext" onclick="nextStep()">Selanjutnya</button>
+        <button type="submit" class="btn" id="btnSubmit" style="display: none;">Kirim Jawaban</button>
+      </div>
+      
+      <div id="loading">Memproses dan menyimpan jawaban, harap tunggu...</div>
+    </form>
+  </div>
+
+  <!-- HALAMAN 3: HASIL -->
+  <div id="page3" class="page">
+    <h2>Asesmen Selesai!</h2>
+    <p style="text-align: center;">Alhamdulillah, <span id="resNama" style="font-weight:bold;"></span> telah menyelesaikan asesmen.</p>
+    
+    <div class="result-box">
+      <p>Skor Akhir Anda:</p>
+      <div class="skor-besar" id="resSkor">0</div>
+      <p>Kategori Literasi:</p>
+      <div class="kategori-label" id="resKategori">Menghitung...</div>
+    </div>
+    
+    <p style="text-align: center; margin-top:20px; font-size:14px; color:#555;">
+      <strong>Intervensi:</strong> 0-40 | <strong>Dasar:</strong> 41-60 | <strong>Cakap:</strong> 61-80 | <strong>Mahir:</strong> 81-100<br><br>
+      Data nilai telah otomatis tersimpan di pusat data sekolah.
+    </p>
+  </div>
+</div>
+
+<script>
+  let currentStep = 1;
+  const totalSteps = 10;
+
+  function startQuiz() {
+    var nama = document.getElementById('nama').value;
+    var kelas = document.getElementById('kelas').value;
+    
+    if(nama.trim() === '' || kelas === '') {
+      alert("Harap isi Nama dan Kelas terlebih dahulu!");
+      return;
+    }
+    
+    // Pindahkan data ke form tersembunyi
+    document.getElementById('hiddenNama').value = nama;
+    document.getElementById('hiddenKelas').value = kelas;
+    
+    // Ganti Halaman
+    document.getElementById('page1').classList.remove('active');
+    document.getElementById('page2').classList.add('active');
+    
+    currentStep = 1;
+    updateStepUI();
+  }
+
+  function updateStepUI() {
+    // 1. Sembunyikan semua soal
+    document.querySelectorAll('.question-step').forEach(el => el.classList.remove('active-step'));
+    
+    // 2. Tampilkan soal saat ini
+    document.querySelector(`.question-step[data-step="${currentStep}"]`).classList.add('active-step');
+    
+    // 3. Atur kemunculan Teks Bacaan
+    if (currentStep <= 5) {
+      document.getElementById('teks1').style.display = 'block';
+      document.getElementById('teks2').style.display = 'none';
+    } else {
+      document.getElementById('teks1').style.display = 'none';
+      document.getElementById('teks2').style.display = 'block';
+    }
+    
+    // 4. Update Indikator Soal
+    document.getElementById('soal-ke').innerText = currentStep;
+    
+    // 5. Atur Tombol Navigasi
+    if (currentStep === 1) {
+      document.getElementById('btnPrev').innerText = "Kembali ke Biodata";
+    } else {
+      document.getElementById('btnPrev').innerText = "Sebelumnya";
+    }
+    
+    if (currentStep === totalSteps) {
+      document.getElementById('btnNext').style.display = 'none';
+      document.getElementById('btnSubmit').style.display = 'block';
+    } else {
+      document.getElementById('btnNext').style.display = 'block';
+      document.getElementById('btnSubmit').style.display = 'none';
+    }
+    
+    window.scrollTo(0, 0);
+  }
+
+  function nextStep() {
+    // Validasi apakah siswa sudah menjawab
+    const currentQName = "q" + currentStep;
+    const options = document.getElementsByName(currentQName);
+    let answered = false;
+    for (let i = 0; i < options.length; i++) {
+      if (options[i].checked) { answered = true; break; }
+    }
+    
+    if (!answered) {
+      alert("Silakan pilih salah satu jawaban terlebih dahulu!");
+      return;
+    }
+    
+    if (currentStep < totalSteps) {
+      currentStep++;
+      updateStepUI();
+    }
+  }
+
+  function prevStep() {
+    if (currentStep === 1) {
+      document.getElementById('page2').classList.remove('active');
+      document.getElementById('page1').classList.add('active');
+    } else {
+      currentStep--;
+      updateStepUI();
+    }
+  }
+
+  function submitData(e) {
+    e.preventDefault();
+    
+    // Validasi soal ke-10 sebelum submit
+    const options = document.getElementsByName("q10");
+    let answered = false;
+    for (let i = 0; i < options.length; i++) {
+      if (options[i].checked) { answered = true; break; }
+    }
+    if (!answered) {
+      alert("Silakan pilih jawaban untuk soal terakhir!");
+      return;
+    }
+    
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('btnPrev').disabled = true;
+    document.getElementById('btnSubmit').disabled = true;
+    
+    var formObject = document.getElementById('formSoal');
+    
+    google.script.run
+      .withSuccessHandler(onSuccess)
+      .withFailureHandler(onFailure)
+      .processForm(formObject);
+  }
+
+  function onSuccess(response) {
+    document.getElementById('loading').style.display = 'none';
+    if(response.success) {
+      document.getElementById('page2').classList.remove('active');
+      document.getElementById('page3').classList.add('active');
+      
+      document.getElementById('resNama').innerText = response.nama;
+      document.getElementById('resSkor').innerText = response.skor;
+      document.getElementById('resKategori').innerText = response.kategori;
+      window.scrollTo(0, 0);
+    } else {
+      alert("Terjadi kesalahan: " + response.error);
+      resetButtons();
+    }
+  }
+
+  function onFailure(error) {
+    document.getElementById('loading').style.display = 'none';
+    alert("Koneksi gagal: " + error.message);
+    resetButtons();
+  }
+  
+  function resetButtons() {
+    document.getElementById('btnPrev').disabled = false;
+    document.getElementById('btnSubmit').disabled = false;
+  }
+</script>
+
+</body>
+</html>
